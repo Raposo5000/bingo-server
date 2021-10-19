@@ -1,12 +1,16 @@
 import { Socket } from "socket.io";
+import { Rooms } from "../../domain/Rooms";
 
-interface IJoinRoom {
-  socket: Socket;
-}
-
-export function joinRoom({ socket }: IJoinRoom) {
+export function joinRoom(socket: Socket) {
   socket.on("create", (room: string) => {
-    console.log(room)
+    const socketId = socket.id;
     socket.join(room);
+
+    const rooms = Rooms.getInstance();
+    try {
+      rooms.createOrJoinRoom(socketId, room);
+    } catch (error) {
+      console.log(error);
+    }
   });
 }
