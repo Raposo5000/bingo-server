@@ -1,6 +1,8 @@
 import { createServer } from "http";
 import { Socket, Server } from "socket.io";
+import { Rooms } from "../domain/Rooms";
 import { joinRoom } from "../interfaces/controllers/join-room";
+import { leaveRoom } from "../interfaces/controllers/leave-room";
 
 export class SocketServer {
   private _httpServer = createServer();
@@ -14,14 +16,22 @@ export class SocketServer {
     this._httpServer.listen(process.env.PORT || port || 3001);
     console.log(`Socket is avaliable on: http://localhost:${port}`);
 
+    setInterval(() => {
+      console.log(getActiveRooms());
+    }, 2000);
+
     this._io.on("connection", (socket: Socket) => {
-      joinRoom({ socket });
+      joinRoom(socket);
 
-      socket.on("getRooms", () => {
-        console.log(socket.rooms);
+      socket.on("disconnect", () => {
+        leaveRoom(socket);
       });
-
-      console.log("Socket connected:: ", socket.id);
     });
   }
+}
+
+function getActiveRooms() {
+  const rooms = Rooms.getInstance();
+  const activeRooms = rooms.getRooms();
+  return activeRooms;
 }
